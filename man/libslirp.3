@@ -1,0 +1,87 @@
+.\"* libslirp: slirp as a library
+.\" Copyright (C) 2014 Renzo Davoli. University of Bologna. <renzo@cs.unibo.it>
+.\" 
+.\" This library is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\" 
+.\" This library is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" Lesser General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU Lesser General Public
+.\" License along with this library; if not, write to the Free Software
+.\" Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+.TH libslirp 3 2016-11-16 "VirtualSquare" "Linux Programmer's Manual"
+.SH NAME
+slirp_open, slirp_start, slirp_fd, slirp_send, slirp_recv, slirp_close \- slirp virtual network
+.SH SYNOPSIS
+.B #include <libslirp.h>
+.br
+.BI "SLIRP *slirp_open(uint32_t" flags ");"
+.br
+.BI "int slirp_start(SLIRP *" slirp ");"
+.br
+.BI "ssize_t slirp_send(SLIRP *" slirp ", const void  *" buf ", size_t " count ");"
+.br
+.BI "ssize_t slirp_recv(SLIRP *" slirp ", void *" buf ", size_t " count ");"
+.br
+.BI "int slirp_fd(SLIRP *" slirp ");"
+.br
+.BI "int slirp_close(SLIRP *" slirp ");"
+.sp
+These functions are provided by libslirp. Link with \fI-lslirp\fR.
+.SH DESCRIPTION
+Slirp is a TCP/IP emulator. Slirp generates a virtual network using standard user privileges (no need for root access
+of CAP_NET_ADMIN). Programs using libslirp can send and receive packets using \fBslirp_send\fR and
+\fBslirp_recv\fR as if they were connected to a NAT/Masquerading router.
+
+\fBslirp_open\fR argument is a flag bit-field. Valid flags are:
+.IP \(bu 2
+SLIRP_IPV4: enable IPv4
+.br
+.IP \(bu 2
+SLIRP_IPV6: enable IPv6
+.br
+.IP \(bu 2
+SLIRP_RESTRICTED: restrict the netwrk virtualisation to the host only.
+.PP
+If flags is zero, slirp emulates IPv4 and it is not restricted.
+
+Libslirp standard configuration is: 
+.IP \(bu 2
+default route: 10.0.2.2 
+.br
+.IP \(bu 2
+DNS forward: 10.0.2.3
+.br
+.IP \(bu 2
+DHCP addresses: 10.0.2.15 - 10.0.2.31
+.br
+.IP \(bu 2
+default route ipv6: fe80::2
+.br
+.IP \(bu 2
+DNS forward IPv6: fe80::3
+.br
+.IP \(bu 2
+Virtual Router Advertisement daemon: active.
+.PP
+
+.SH RETURN VALUE
+\fBslirp_open\fR returns the SLIRP pointer, otherwise, NULL is returned.
+\fBslirp_send\fR and \fBslirp_recv\fR return the number of bytes sent or received, -1 in case of error.
+\fBslirp_fd\fR returns a valid file descriptor which can be used to wait for incoming packets (using select or poll).
+\fBslirp_start\fR and \fBslirp_close\fR return zero, -1 in case of error.
+In case of failure, errno is set to indicate the type of error. 
+
+.SH SEE ALSO
+.SH BUGS
+Bug reports should be addressed to <info@virtualsquare.org>
+.SH AUTHOR
+Renzo Davoli <renzo@cs.unibo.it>: the idea of slirp is by Danny 
+Gasparovski. This implementation of slirp has been forked from Qemu.
+Please refer to the LICENSE file in the source tree main directory for information about the license.
