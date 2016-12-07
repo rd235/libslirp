@@ -38,7 +38,7 @@ struct slirp_init_data {
 	uint32_t flags;
 	struct in_addr vhost;
 	int prefix;
-	struct in6_addr vhost6; 
+	struct in6_addr vhost6;
 	int prefix6;
 	char *vhostname;
 	char *tftp_path;
@@ -72,9 +72,9 @@ struct slirp_request {
 	int pipefd[2];
 	int intarg;
 	const void *ptrarg;
-	struct in_addr host_addr; 
+	struct in_addr host_addr;
 	int host_port;
-	struct in_addr guest_addr; 
+	struct in_addr guest_addr;
 	int guest_port;
 };
 
@@ -83,7 +83,7 @@ SLIRP *slirp_open(uint32_t flags) {
 	if (rval == NULL)
 		goto rval_err;
 	rval->init_data = calloc(1,sizeof(struct slirp_init_data));
-	if (rval->init_data == NULL) 
+	if (rval->init_data == NULL)
 		goto init_data_err;
 	if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_CLOEXEC, 0, rval->channel) < 0)
 		goto socketpair_err;
@@ -336,21 +336,21 @@ int slirp_remove_fwd(SLIRP *slirp, int is_udp,
 }
 
 int slirp_add_unixfwd(SLIRP *slirp,
-		struct in_addr host_addr, int host_port, char *path) {
+		struct in_addr guest_addr, int guest_port, char *path) {
 	struct slirp_request req = {
 		.tag = SLIRP_ADD_UNIXFWD,
-		.host_addr = host_addr,
-		.host_port = host_port,
+		.guest_addr = guest_addr,
+		.guest_port = guest_port,
 		.ptrarg = path };
 	return slirp_send_req(slirp->slirp_conn, &req);
 }
 
-int slirp_del_unixfwd(SLIRP *slirp,
-		struct in_addr host_addr, int host_port) {
+int slirp_remove_unixfwd(SLIRP *slirp,
+		struct in_addr guest_addr, int guest_port) {
 	struct slirp_request req = {
 		.tag = SLIRP_DEL_UNIXFWD,
-		.host_addr = host_addr,
-		.host_port = host_port};
+		.guest_addr = guest_addr,
+		.guest_port = guest_port};
 	return slirp_send_req(slirp->slirp_conn, &req);
 }
 
@@ -394,19 +394,19 @@ static void slirp_conn_open(void **arg) {
 
 		slirp_conn->slirp = slirp_init((data->flags & SLIRP_RESTRICTED) != 0,
 				(data->flags & SLIRP_IPV4) != 0,
-				vnetwork, 
-				vnetmask, 
+				vnetwork,
+				vnetmask,
 				data->vhost,
 				(data->flags & SLIRP_IPV6) != 0,
-				vprefix_addr6, 
+				vprefix_addr6,
 				data->prefix6,
-				data->vhost6, 
+				data->vhost6,
 				data->vhostname,
-				data->tftp_path, 
+				data->tftp_path,
 				data->bootfile,
-				data->vdhcp_start, 
+				data->vdhcp_start,
 				data->vnameserver,
-				data->vnameserver6, 
+				data->vnameserver6,
 				(const char **) data->vdnssearch,
 				slirp_conn);
 		slirp_conn->outfd = slirp->channel[DAEMONSIDE];
@@ -436,11 +436,11 @@ void slirp_do_req(struct slirp_conn *slirp_conn, void **arg) {
 				break;
 			case SLIRP_ADD_UNIXFWD:
 				rval = slirp_add_hostunixfwd(slirp_conn->slirp,
-						preq->host_addr, preq->host_port, preq->ptrarg); 
+						preq->guest_addr, preq->guest_port, preq->ptrarg);
 				break;
 			case SLIRP_DEL_UNIXFWD:
 				rval = slirp_remove_hostunixfwd(slirp_conn->slirp,
-						preq->host_addr, preq->host_port); 
+						preq->guest_addr, preq->guest_port);
 				break;
 			case SLIRP_ADD_EXEC:
 				rval = slirp_add_exec(slirp_conn->slirp, preq->intarg,
@@ -489,7 +489,7 @@ static void *slirpdaemon_thread (void *arg) {
 				/* NEW CONN */
 				slirp_conn_open((void **) buf);
 			} else if (len <= sizeof(slirp_conn) + sizeof(struct slirp_request *)) {
-				if (len == sizeof(slirp_conn)) 
+				if (len == sizeof(slirp_conn))
 					slirp_conn_close(slirp_conn);
 				else
 					slirp_do_req(slirp_conn, (void **) buf);

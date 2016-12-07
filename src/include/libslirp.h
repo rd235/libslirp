@@ -46,13 +46,13 @@ int slirp_close(SLIRP *slirp);
 int slirp_add_fwd(SLIRP *slirp, int is_udp,
 		struct in_addr host_addr, int host_port,
 		struct in_addr guest_addr, int guest_port);
-int slirp_remove_fwd(SLIRP *slirp, int is_udp,
+int slirp_del_fwd(SLIRP *slirp, int is_udp,
 		struct in_addr host_addr, int host_port);
 
 int slirp_add_unixfwd(SLIRP *slirp, 
-		struct in_addr host_addr, int host_port, char *path);
+		struct in_addr guest_addr, int guest_port, char *path);
 int slirp_del_unixfwd(SLIRP *slirp, 
-		struct in_addr host_addr, int host_port);
+		struct in_addr guest_addr, int guest_port);
 
 int slirp_add_cmdexec(SLIRP *slirp, int do_pty, const void *args,
 		struct in_addr guest_addr, int guest_port);

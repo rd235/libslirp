@@ -1,0 +1,79 @@
+.\"* libslirp: slirp as a library
+.\" Copyright (C) 2014 Renzo Davoli. University of Bologna. <renzo@cs.unibo.it>
+.\"
+.\" This library is free software; you can redistribute it and/or
+.\" modify it under the terms of the GNU Lesser General Public
+.\" License as published by the Free Software Foundation; either
+.\" version 2.1 of the License, or (at your option) any later version.
+.\"
+.\" This library is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" Lesser General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU Lesser General Public
+.\" License along with this library; if not, write to the Free Software
+.\" Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+.TH libslirpcfg 3 2016-11-16 "VirtualSquare" "Linux Programmer's Manual"
+.SH NAME
+slirp_set_addr, slirp_set_addr6, slirp_set_hostname, slirp_set_tftppath, slirp_set_bootfile,
+	slirp_set_dhcp, slirp_set_dnsaddr, slirp_set_dnsaddr6, slirp_set_vdnssearch
+.SH SYNOPSIS
+.B #include <libslirp.h>
+.br
+.BI "int slirp_set_addr(SLIRP *slirp, struct in_addr vhost, int prefix);
+.br
+.BI "int slirp_set_addr6(SLIRP *slirp, struct in6_addr vhost6, int prefix);
+.br
+.BI "int slirp_set_hostname(SLIRP *slirp, const char *vhostname);
+.br
+.BI "int slirp_set_tftppath(SLIRP *slirp, const char *tftp_path);
+.br
+.BI "int slirp_set_bootfile(SLIRP *slirp, const char *bootfile);
+.br
+.BI "int slirp_set_dhcp(SLIRP *slirp, struct in_addr vdhcp_start);
+.br
+.BI "int slirp_set_dnsaddr(SLIRP *slirp, struct in_addr vnameserver);
+.br
+.BI "int slirp_set_dnsaddr6(SLIRP *slirp, struct in6_addr vnameserver6);
+.br
+.BI "int slirp_set_vdnssearch(SLIRP *slirp, char **vdnssearch);
+
+These functions are provided by libslirp. Link with \fI-lslirp\fR.
+.SH DESCRIPTION
+Slirp, see liblirp(3), is a TCP/IP emulator. Slirp generates a virtual network using standard user privileges (no need for root access
+of CAP_NET_ADMIN).
+These functions configure various parameters of slirp (overriding the default values)
+and must be called after \fBslirp_open\fR and before \fBslirp_start\fR.
+
+\fBslirp_set_addr\fR sets the IPv4 address and prefix of slirp in the virtual network.
+
+\fBslirp_set_addr6\fR sets the IPv6 address and prefix of slirp in the virtual network.
+
+\fBslirp_set_hostname\fR sets the hostname (for bootp).
+
+\fBslirp_set_tftppath\fR sets the path of the directory shared if the ftfp service is enabled.
+
+\fBslirp_set_bootfile\fR sets the bootfile (for bootp).
+
+\fBslirp_set_dhcp\fR sets the lowest address assigned by the dhcp service.
+
+\fBslirp_set_dnsaddr\fR sets the (virtual) IPv4 address for DNS forwarding.
+
+\fBslirp_set_dnsaddr6\fR sets the (virtual) IPv6 address for DNS forwarding.
+
+\fBslirp_set_vdnssearch\fR sets the dns search path (list of domains) advertised by dhcp.
+
+.SH RETURN VALUE
+All these functions return 0 in case of success, -1 otherwise.
+
+.SH SEE ALSO
+libslirp(3),
+.SH BUGS
+
+Bug reports should be addressed to <info@virtualsquare.org>
+.SH AUTHOR
+Renzo Davoli <renzo@cs.unibo.it>: the idea of slirp is by Danny
+Gasparovski. This implementation of slirp has been forked from Qemu.
+Please refer to the LICENSE file in the source tree main directory for information about the license.
