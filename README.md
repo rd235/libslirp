@@ -4,7 +4,7 @@ A TCP-IP emulator as a library.
 ## Slirp
 
 Originally designed to provide PPP/SLIP over terminal lines, slirp is a general purpose TCP-IP emulator widely used
-by virtual machine hypervisor to provide virtual networking services.
+by virtual machine hypervisors to provide virtual networking services.
 
 Qemu, virtualbox, user-mode linux include slirp to provide the guest os with a virtual network while requiring no
 configuration nor privileged services on the host.
