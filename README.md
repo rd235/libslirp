@@ -11,12 +11,21 @@ configuration nor privileged services on the host.
 
 This project wraps the slirp code in a library featuring a clean and simple interface.
 
+## Install libslirp:
+
+```
+$ autoreconf -if
+$ ./configure
+$ make
+$ sudo make install
+```
+
 ## libslirp tutorial
 
 The first operation to use a slirp virtual network is <code>slirp_open</code>.
-<pre>
+```
 SLIRP *myslirp = slirp_open(SLIRP_IPV4 | SLIRP_IPV6);
-</pre>
+```
 
 *myslirp* is the descriptor of the slirp network.
 
@@ -31,25 +40,25 @@ The library has been designed to assign suitable default values for all the para
 Libslirp provides functions to override the values (see <code>man libslirpcfg</code>).
 
 After the (eventual) configuration of all the parameters the slirp networj can be activated:
-<pre>
+```
 slirp_start(myslirp);
-</pre>
+```
 
 Now virtual networking (ethernet) packets can be sent and received using *slirp_send* and *slirp_recv*. e.g.:
-<pre>
+```
 sentlen = slirp_send(myslirp, pkt, pktlen);
 pktlen = slirp_recv(myslirp, buf, buflen);
-</pre>
+```
 
 *slirp_fd* returns a file descriptor which can be used to wait for incoming packets using poll or select.
-<pre>
+```
 myslirpfd = slirp_fd(myslirp);
-</pre>
+```
 
 It is also possible to set up port forwarding for TCP, UDP (currently IPV4 only) or connect X-window clients
 running in the virtual network to a X server UNIX socket, see <code>man libslirpfwd</code>.
 
 To terminate the slirp network, call:
-<pre>
+```
 slirp_close(myslirp)
-</pre>
+```
