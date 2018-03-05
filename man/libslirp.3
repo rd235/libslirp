@@ -74,7 +74,7 @@ Virtual Router Advertisement daemon: active.
 .SH RETURN VALUE
 \fBslirp_open\fR returns the SLIRP pointer, otherwise, NULL is returned.
 \fBslirp_send\fR and \fBslirp_recv\fR return the number of bytes sent or received, -1 in case of error.
-\fBslirp_fd\fR returns a valid file descriptor which can be used to wait for incoming packets (using select or poll).
+\fBslirp_fd\fR returns a valid file descriptor which can be used to wait for incoming packets (using select or poll). Note that the descriptor cannot be used for sending packets.
 \fBslirp_start\fR and \fBslirp_close\fR return zero, -1 in case of error.
 In case of failure, errno is set to indicate the type of error.
 
