@@ -51,6 +51,7 @@ pktlen = slirp_recv(myslirp, buf, buflen);
 ```
 
 *slirp_fd* returns a file descriptor which can be used to wait for incoming packets using poll or select.
+Note that the descriptor cannot be used for sending packets.
 ```
 myslirpfd = slirp_fd(myslirp);
 ```
