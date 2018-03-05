@@ -62,3 +62,35 @@ To terminate the slirp network, call:
 ```
 slirp_close(myslirp)
 ```
+
+## Go binding
+
+To install the Go binding, you just need to run `go get github.com/rd235/libslirp/src`.
+No need to run `./configure` and `make`.
+
+Usage:
+
+```go
+package main
+
+import libslirp "github.com/rd235/libslirp/src"
+
+func main(){
+  slirp, _ := libslirp.Open(libslirp.IPv4)
+  slirp.Start()
+  slirp.Write(ethBytes)
+  reply := make([]byte, 4096)
+  slirp.Read(reply)
+  ...
+  slirp.Close()
+}
+```
+
+See also [godoc](https://godoc.org/github.com/rd235/libslirp/src).
+
+### Unit testing
+
+```
+$ go get -t -u github.com/rd235/libslirp/src
+$ go test -v github.com/rd235/libslirp/src
+```
