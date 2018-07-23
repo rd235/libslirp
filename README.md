@@ -39,7 +39,7 @@ The library has been designed to assign suitable default values for all the para
 
 Libslirp provides functions to override the values (see <code>man libslirpcfg</code>).
 
-After the (eventual) configuration of all the parameters the slirp networj can be activated:
+After the (eventual) configuration of all the parameters the slirp network can be activated:
 ```
 slirp_start(myslirp);
 ```
