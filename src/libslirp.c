@@ -49,17 +49,17 @@ struct slirp_init_data {
 	char **vdnssearch;
 };
 
-struct slirp_conn;
-struct slirp {
+typedef struct slirp {
 	struct slirp_init_data *init_data;
 	int channel[2];
 	struct slirp_conn *slirp_conn;
-};
+} slirp_t;
+slirp_t slirp_conn;
 
-struct slirp_conn {
+typedef struct slirp_conn {
 	Slirp *slirp;
 	int outfd;
-};
+} slirp_conn_t;
 
 #define SLIRP_ADD_FWD 0x11
 #define SLIRP_DEL_FWD 0x12
@@ -67,7 +67,7 @@ struct slirp_conn {
 #define SLIRP_DEL_UNIXFWD 0x22
 #define SLIRP_ADD_EXEC 0x31
 
-struct slirp_request {
+typedef struct slirp_request {
 	int tag;
 	int pipefd[2];
 	int intarg;
@@ -76,10 +76,10 @@ struct slirp_request {
 	int host_port;
 	struct in_addr guest_addr;
 	int guest_port;
-};
+} slirp_request_t;
 
 SLIRP *slirp_open(uint32_t flags) {
-	SLIRP *rval = malloc(sizeof(struct slirp));
+	SLIRP *rval = malloc(sizeof(slirp_t));
 	if (rval == NULL)
 		goto rval_err;
 	rval->init_data = calloc(1,sizeof(struct slirp_init_data));
@@ -234,11 +234,11 @@ int slirp_set_vdnssearch(SLIRP *slirp, char **vdnssearch) {
 int slirp_start(SLIRP *slirp) {
 	if (slirp->init_data) {
 		struct slirp_conn *slirp_conn=NULL;
-		struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn)},{&slirp,sizeof(slirp)}};
-		if (writev(slirpdaemonfd[APPSIDE], iovout, 2) < 0) {
+        struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn_t*)},{&slirp,sizeof(SLIRP*)}};
+        if(writev(slirpdaemonfd[APPSIDE], iovout, 2) < 0){
 			return -1;
 		}
-		if (read(slirp->channel[APPSIDE], &slirp_conn, sizeof(slirp_conn)) < sizeof(slirp_conn)) {
+		if (read(slirp->channel[APPSIDE], &slirp_conn, sizeof(struct slirp_conn*)) < sizeof(struct slirp_conn*)) {
 			return -1;
 		}
 		if (slirp_conn != NULL) {
@@ -255,7 +255,7 @@ int slirp_start(SLIRP *slirp) {
 ssize_t slirp_send(SLIRP *slirp, const void *buf, size_t count) {
 	struct slirp_conn *slirp_conn = slirp->slirp_conn;
 	if (slirp_conn && count > sizeof(void *)) {
-		struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn)},{(char *)buf,count}};
+		struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn_t*)},{(char *)buf,count}};
 		ssize_t rval = writev(slirpdaemonfd[APPSIDE], iovout, 2);
 		return rval - sizeof(slirp_conn);
 	} else {
@@ -287,7 +287,7 @@ int slirp_fd(SLIRP *slirp) {
 int slirp_close(SLIRP *slirp) {
 	struct slirp_conn *slirp_conn = slirp->slirp_conn;
 	if (slirp_conn) {
-		struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn)}};
+		struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn_t*)}};
 		ssize_t rval = writev(slirpdaemonfd[APPSIDE], iovout, 1);
 		if (rval >= 0) {
 			close(slirp->channel[APPSIDE]);
@@ -301,8 +301,8 @@ int slirp_close(SLIRP *slirp) {
 	}
 }
 
-static int slirp_send_req(struct slirp_conn *slirp_conn, struct slirp_request *preq) {
-	struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn)},{&preq,sizeof(preq)}};
+static int slirp_send_req(slirp_conn_t *slirp_conn, slirp_request_t *preq) {
+	struct iovec iovout[]={{&slirp_conn,sizeof(slirp_conn_t*)},{&preq,sizeof(slirp_request_t*)}};
 	int rval;
 	pipe(preq->pipefd);
 	writev(slirpdaemonfd[APPSIDE], iovout, 2);
@@ -381,9 +381,9 @@ static void netmask6 (struct in6_addr *prefixaddr, struct in6_addr *host, int pr
 }
 
 static void slirp_conn_open(void **arg) {
-	struct slirp *slirp = *arg;
+	slirp_t *slirp = *arg;
 	if (slirp && slirp->init_data) {
-		struct slirp_conn *slirp_conn = calloc(1, sizeof(*slirp_conn));
+		slirp_conn_t *slirp_conn = calloc(1, sizeof(slirp_conn_t));
 		struct slirp_init_data *data = slirp->init_data;
 		struct in_addr vnetwork, vnetmask;
 		struct in6_addr vprefix_addr6;
@@ -410,18 +410,18 @@ static void slirp_conn_open(void **arg) {
 				(const char **) data->vdnssearch,
 				slirp_conn);
 		slirp_conn->outfd = slirp->channel[DAEMONSIDE];
-		write(slirp_conn->outfd, &slirp_conn, sizeof(slirp_conn));
+		write(slirp_conn->outfd, &slirp_conn, sizeof(slirp_conn_t*));
 	}
 }
 
-void slirp_conn_close(struct slirp_conn *slirp_conn) {
+void slirp_conn_close(slirp_conn_t *slirp_conn) {
 	slirp_clean_hostunixfwd(slirp_conn->slirp);
 	slirp_cleanup(slirp_conn->slirp);
 	free(slirp_conn);
 }
 
-void slirp_do_req(struct slirp_conn *slirp_conn, void **arg) {
-	  struct slirp_request *preq = *arg;
+void slirp_do_req(slirp_conn_t *slirp_conn, void **arg) {
+	  slirp_request_t *preq = *arg;
 		int rval = -1;
 
 		switch (preq->tag) {
@@ -453,7 +453,7 @@ void slirp_do_req(struct slirp_conn *slirp_conn, void **arg) {
 }
 
 void slirp_output(void *opaque, const uint8_t *pkt, int pkt_len) {
-	struct slirp_conn *slirp_conn = (struct slirp_conn *) opaque;
+	slirp_conn_t *slirp_conn = (slirp_conn_t *) opaque;
 	write(slirp_conn->outfd, pkt, pkt_len);
 }
 
@@ -479,23 +479,23 @@ static void *slirpdaemon_thread (void *arg) {
 #endif
 		pollout = poll(mainloopfds.pfd, mainloopfds.len, timeout);
 		if (mainloopfds.pfd[0].revents) {
-			struct slirp_conn *slirp_conn;
+			slirp_conn_t *slirp_conn;
 			uint8_t buf[MAXMTU];
-			struct iovec iovin[]={{&slirp_conn,sizeof(slirp_conn)},{buf,MAXMTU}};
+			struct iovec iovin[]={{&slirp_conn,sizeof(slirp_conn_t*)},{buf,MAXMTU}};
 			size_t len = readv(slirpdaemonfd[DAEMONSIDE], iovin, 2);
 			if (len == 0)
 				break;
 			if (slirp_conn == NULL) {
 				/* NEW CONN */
 				slirp_conn_open((void **) buf);
-			} else if (len <= sizeof(slirp_conn) + sizeof(struct slirp_request *)) {
-				if (len == sizeof(slirp_conn))
+			} else if (len <= sizeof(slirp_conn_t*) + sizeof(slirp_request_t*)) {
+				if (len == sizeof(slirp_conn_t*))
 					slirp_conn_close(slirp_conn);
 				else
 					slirp_do_req(slirp_conn, (void **) buf);
 			} else {
 				/* incoming msg */
-				slirp_input(slirp_conn->slirp, buf, len - sizeof(slirp_conn));
+				slirp_input(slirp_conn->slirp, buf, len - sizeof(slirp_conn_t*));
 			}
 			pollout--;
 		}
@@ -507,7 +507,7 @@ static void *slirpdaemon_thread (void *arg) {
 
 __attribute__((constructor)) static void init() {
 	//fprintf(stderr, "INIT!\n");
-	socketpair(AF_LOCAL, SOCK_SEQPACKET | SOCK_CLOEXEC, 0, slirpdaemonfd);
+	socketpair(AF_LOCAL, SOCK_STREAM | SOCK_CLOEXEC, 0, slirpdaemonfd);
 	pthread_create(&slirpdaemon_tid, NULL, slirpdaemon_thread, NULL);
 }
 
