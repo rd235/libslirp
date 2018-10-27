@@ -8,11 +8,7 @@ typedef void Monitor;
 # endif
 
 # ifndef SOCK_CLOEXEC
- # ifdef __APPLE__
-  # define SOCK_CLOEXEC 0
- # else
-  #define SOCK_CLOEXEC O_CLOEXEC
- # endif
+ #define SOCK_CLOEXEC O_CLOEXEC
 # endif
 
 #endif
