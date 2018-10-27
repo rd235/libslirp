@@ -23,6 +23,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 #include <include/libslirp.h>
 #include <slirp.h>
@@ -31,6 +32,7 @@
 #define MAXMTU 4096
 #define APPSIDE 0
 #define DAEMONSIDE 1
+#define SOCKBUF (2*1024*1024)
 static int slirpdaemonfd[2];
 static pthread_t slirpdaemon_tid;
 
@@ -85,8 +87,18 @@ SLIRP *slirp_open(uint32_t flags) {
 	rval->init_data = calloc(1,sizeof(struct slirp_init_data));
 	if (rval->init_data == NULL)
 		goto init_data_err;
-	if (socketpair(AF_LOCAL, SOCK_DGRAM | SOCK_CLOEXEC, 0, rval->channel) < 0)
+	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, rval->channel) < 0)
 		goto socketpair_err;
+    /* set SOCK_CLOEXEC */
+    fcntl(rval->channel[0], F_SETFD, SOCK_CLOEXEC);
+    fcntl(rval->channel[1], F_SETFD, SOCK_CLOEXEC);
+    /* set sock buf */
+    int nBufferLen = SOCKBUF;
+    int nLen = sizeof(int);
+    setsockopt(rval->channel[0], SOL_SOCKET, SO_SNDBUF, (char*)&nBufferLen, nLen);
+    setsockopt(rval->channel[0], SOL_SOCKET, SO_RCVBUF, (char*)&nBufferLen, nLen);
+    setsockopt(rval->channel[1], SOL_SOCKET, SO_SNDBUF, (char*)&nBufferLen, nLen);
+    setsockopt(rval->channel[1], SOL_SOCKET, SO_RCVBUF, (char*)&nBufferLen, nLen);
 	/* default values */
 	if ((flags & (SLIRP_IPV4 | SLIRP_IPV6)) == 0)
 		flags |= SLIRP_IPV4;
@@ -507,7 +519,17 @@ static void *slirpdaemon_thread (void *arg) {
 
 __attribute__((constructor)) static void init() {
 	//fprintf(stderr, "INIT!\n");
-	socketpair(AF_LOCAL, SOCK_STREAM | SOCK_CLOEXEC, 0, slirpdaemonfd);
+	socketpair(AF_LOCAL, SOCK_DGRAM, 0, slirpdaemonfd);
+    /* set O_CLOEXEC */
+    fcntl(slirpdaemonfd[0], F_SETFD, O_CLOEXEC);
+    fcntl(slirpdaemonfd[1], F_SETFD, O_CLOEXEC);
+    /* set sock buf */
+    int nBufferLen = SOCKBUF;
+    int nLen = sizeof(int);
+    setsockopt(slirpdaemonfd[0], SOL_SOCKET, SO_SNDBUF, (char*)&nBufferLen, nLen);
+    setsockopt(slirpdaemonfd[0], SOL_SOCKET, SO_RCVBUF, (char*)&nBufferLen, nLen);
+    setsockopt(slirpdaemonfd[1], SOL_SOCKET, SO_SNDBUF, (char*)&nBufferLen, nLen);
+    setsockopt(slirpdaemonfd[1], SOL_SOCKET, SO_RCVBUF, (char*)&nBufferLen, nLen);
 	pthread_create(&slirpdaemon_tid, NULL, slirpdaemon_thread, NULL);
 }
 
