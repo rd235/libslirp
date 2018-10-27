@@ -520,9 +520,9 @@ static void *slirpdaemon_thread (void *arg) {
 __attribute__((constructor)) static void init() {
 	//fprintf(stderr, "INIT!\n");
 	socketpair(AF_LOCAL, SOCK_DGRAM, 0, slirpdaemonfd);
-    /* set O_CLOEXEC */
-    fcntl(slirpdaemonfd[0], F_SETFD, O_CLOEXEC);
-    fcntl(slirpdaemonfd[1], F_SETFD, O_CLOEXEC);
+    /* set SOCK_CLOEXEC */
+    fcntl(slirpdaemonfd[0], F_SETFD, SOCK_CLOEXEC);
+    fcntl(slirpdaemonfd[1], F_SETFD, SOCK_CLOEXEC);
     /* set sock buf */
     int nBufferLen = SOCKBUF;
     int nLen = sizeof(int);
