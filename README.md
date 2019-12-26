@@ -1,3 +1,16 @@
+# THIS LIBRARY IS DEPRECATED
+
+Please use [libvdeslirp](https://github.com/virtualsquare/libvdeslirp) instead.
+
+* `libvdeslirp` supports (almost) all the features of this library (to the date the only missing feature is
+		the port forwarding to a UNIX socket);
+*  `libvdeslirp` is based on [`qemu`'s libslirp](https://gitlab.freedesktop.org/slirp/libslirp);
+*  `qemu`'s libslirp has been included in Debian Sid (and possibly in other distribution):
+	there is a name clash with this library)
+*  `qemu`'s libslirp is actively maintained and updated
+* for all the reasons here above **this library will no longer be maintained**
+
+
 # libslirp
 A TCP-IP emulator as a library.
 
